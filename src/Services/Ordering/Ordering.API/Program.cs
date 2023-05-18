@@ -1,3 +1,7 @@
+using EventBus.Messages.Common;
+using EventBus.Messages.Events;
+using MassTransit;
+using Ordering.API.EventBusConsumer;
 using Ordering.API.Extensions;
 using Ordering.Application;
 using Ordering.Infrastructure;
@@ -11,6 +15,21 @@ ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, 
 // Add services to the container.
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(configuration);
+
+//MassTransit-RabbitMQ configuration
+builder.Services.AddMassTransit(options => {
+    options.AddConsumer<BasketCheckoutConsumer>();
+    options.UsingRabbitMq((ctx, config) =>
+    {
+        config.Host(configuration["EventBusSettings:HostAddress"]);
+        config.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, c => {
+            c.ConfigureConsumer<BasketCheckoutConsumer>(ctx);
+        });
+    });
+});
+//services.AddMassTransitHostedService();
+
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
