@@ -52,11 +52,18 @@ services:
       context: .
       dockerfile: Services/Ordering/Ordering.API/Dockerfile
 
+  oceletapigw:
+    image: ${DOCKER_REGISTRY-}oceletapigw
+    build:
+      context: .
+      dockerfile: ApiGateways/OceletApiGw/Dockerfile
+
 volumes:
   mongo_data:
   portainer_data:
   postgres_data:
   pgadmin_data:
+
 
 
 
