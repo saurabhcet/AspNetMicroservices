@@ -1,5 +1,6 @@
 using Catalog.API.Data;
 using Catalog.API.Repositories;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,8 +22,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var counter = Metrics.CreateCounter("catalogapimetrics", "Counts requests to the Catalog API endpoints",
+                new CounterConfiguration
+                {
+                    LabelNames = new[] { "method", "endpoint" }
+                });
+
+app.Use((context, next) =>
+{
+    counter.WithLabels(context.Request.Method, context.Request.Path).Inc();
+    return next();
+});
+
+// Use the prometheus middleware
+app.UseMetricServer();
+app.UseHttpMetrics();
+
+app.UseRouting();
+
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapMetrics();
 
 app.Run();
